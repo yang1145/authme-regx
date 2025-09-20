@@ -2,7 +2,7 @@
 const mysql_ = require('mysql')
 const api = require('./api.js')
 
-var config = require('../config/config.json')
+var config = require('../config/config.js')
 
 var mysql_pool = mysql_.createPool({
   host: config.mysql.host,
@@ -17,17 +17,20 @@ var mysql_pool = mysql_.createPool({
 exports.tableExist = async tablename => {
   // 查询表是否存在
   let status = false
-  let sql = "SHOW TABLES LIKE '" + tablename + "';"
+  let sql = "SHOW TABLES LIKE ?"
   let query_table = new Promise((resolve, reject) => {
     mysql_pool.getConnection((error, connection) => {
-      if (error) throw error
-      connection.query(sql, (err, res) => {
+      if (error) {
+        console.error('数据库连接错误:', error)
+        return
+      }
+      connection.query(sql, [tablename], (err, res) => {
+        connection.release()
         if (err) {
           reject(err)
         } else {
           resolve(res)
         }
-        connection.release()
       })
     })
   })
@@ -44,14 +47,17 @@ exports.createTable = async (tablename, sql) => {
   let status = false
   let create_table = new Promise((resolve, reject) => {
     mysql_pool.getConnection((error, connection) => {
-      if (error) throw error
+      if (error) {
+        console.error('数据库连接错误:', error)
+        return
+      }
       connection.query(sql, (err, res) => {
+        connection.release()
         if (err) {
           reject(err)
         } else {
           resolve(res)
         }
-        connection.release()
       })
     })
   })
@@ -66,18 +72,22 @@ exports.createTable = async (tablename, sql) => {
 exports.queryExist = async (key, val) => {
   // 查询是否已存在
   let status = [false, false]
-  let sql_users = 'SELECT * FROM `' + config.mysql.users.tablename + '` WHERE ' + key + " = '" + val + "' LIMIT 1;",
-    sql_authme = 'SELECT * FROM `' + config.mysql.authme.tablename + '` WHERE ' + key + " = '" + val + "' LIMIT 1;"
+  let sql_users = 'SELECT * FROM `' + config.mysql.users.tablename + '` WHERE `' + key + '` = ? LIMIT 1'
+  let sql_authme = 'SELECT * FROM `' + config.mysql.authme.tablename + '` WHERE `' + key + '` = ? LIMIT 1'
+  
   let query_users = new Promise((resolve, reject) => {
     mysql_pool.getConnection((error, connection) => {
-      if (error) throw error
-      connection.query(sql_users, (err, res) => {
+      if (error) {
+        console.error('数据库连接错误:', error)
+        return
+      }
+      connection.query(sql_users, [val], (err, res) => {
+        connection.release()
         if (err) {
           reject(err)
         } else {
           resolve(res)
         }
-        connection.release()
       })
     })
   })
@@ -88,16 +98,20 @@ exports.queryExist = async (key, val) => {
       status[0] = false
     }
   })
+  
   let query_authme = new Promise((resolve, reject) => {
     mysql_pool.getConnection((error, connection) => {
-      if (error) throw error
-      connection.query(sql_authme, (err, res) => {
+      if (error) {
+        console.error('数据库连接错误:', error)
+        return
+      }
+      connection.query(sql_authme, [val], (err, res) => {
+        connection.release()
         if (err) {
           reject(err)
         } else {
           resolve(res)
         }
-        connection.release()
       })
     })
   })
@@ -145,12 +159,10 @@ exports.queryTime = async (ip, time_count) => {
       config.mysql.users.tablename +
       '` WHERE `' +
       config.mysql.users.column.mySQLColumnRegisterIp +
-      "` = '" +
-      ip +
-      "' ORDER BY `" +
+      "` = ? ORDER BY `" +
       config.mysql.users.column.mySQLColumnId +
-      '` DESC LIMIT 1;',
-    sql_ip_authme =
+      '` DESC LIMIT 1'
+  let sql_ip_authme =
       'SELECT `' +
       config.mysql.authme.column.mySQLColumnId +
       '`, `' +
@@ -161,21 +173,23 @@ exports.queryTime = async (ip, time_count) => {
       config.mysql.authme.tablename +
       '` WHERE `' +
       config.mysql.authme.column.mySQLColumnRegisterIp +
-      "` = '" +
-      ip +
-      "' ORDER BY `" +
+      "` = ? ORDER BY `" +
       config.mysql.authme.column.mySQLColumnId +
-      '` DESC LIMIT 1;'
+      '` DESC LIMIT 1'
+      
   let query_ip_users = new Promise((resolve, reject) => {
     mysql_pool.getConnection((error, connection) => {
-      if (error) throw error
-      connection.query(sql_ip_users, (err, res) => {
+      if (error) {
+        console.error('数据库连接错误:', error)
+        return
+      }
+      connection.query(sql_ip_users, [ip], (err, res) => {
+        connection.release()
         if (err) {
           reject(err)
         } else {
           resolve(res)
         }
-        connection.release()
       })
     })
   })
@@ -187,16 +201,20 @@ exports.queryTime = async (ip, time_count) => {
       status[0] = true
     }
   })
+  
   let query_ip_authme = new Promise((resolve, reject) => {
     mysql_pool.getConnection((error, connection) => {
-      if (error) throw error
-      connection.query(sql_ip_authme, (err, res) => {
+      if (error) {
+        console.error('数据库连接错误:', error)
+        return
+      }
+      connection.query(sql_ip_authme, [ip], (err, res) => {
+        connection.release()
         if (err) {
           reject(err)
         } else {
           resolve(res)
         }
-        connection.release()
       })
     })
   })
@@ -230,8 +248,8 @@ exports.insertReg = async (JSONdata, ip) => {
     email = JSONdata.e,
     date_timestamp = api.getTimeStamp(),
     date = api.timestamp2Date(date_timestamp)
-  let sql_users =
-    'INSERT INTO `' +
+    
+  let sql_users = 'INSERT INTO `' +
     config.mysql.users.tablename +
     '` (`' +
     config.mysql.users.column.mySQLColumnId +
@@ -249,21 +267,9 @@ exports.insertReg = async (JSONdata, ip) => {
     config.mysql.users.column.mySQLColumnRegisterDate +
     '`, `' +
     config.mysql.users.column.mySQLColumnRegisterIp +
-    "`) VALUES (NULL, '" +
-    username +
-    "', '" +
-    realname +
-    "', '" +
-    password_users +
-    "', '" +
-    email +
-    "', NULL, '" +
-    date +
-    "', '" +
-    ip +
-    "')"
-  let sql_authme =
-    'INSERT INTO `' +
+    "`) VALUES (NULL, ?, ?, ?, ?, NULL, ?, ?)"
+    
+  let sql_authme = 'INSERT INTO `' +
     config.mysql.authme.tablename +
     '` (`' +
     config.mysql.authme.column.mySQLColumnId +
@@ -299,31 +305,21 @@ exports.insertReg = async (JSONdata, ip) => {
     config.mysql.authme.column.mySQLColumnLogged +
     '`, `' +
     config.mysql.authme.column.mySQLColumnHasSession +
-    "`) VALUES (NULL, '" +
-    username +
-    "', '" +
-    realname +
-    "', '" +
-    password_authme +
-    "', NULL, NULL, '0', '0', '0', '" +
-    config.mysql.authme.world +
-    "', '" +
-    date_timestamp +
-    "', '" +
-    ip +
-    "', NULL, NULL, '" +
-    email +
-    "', '0', '0')"
+    "`) VALUES (NULL, ?, ?, ?, NULL, NULL, '0', '0', '0', ?, ?, ?, NULL, NULL, ?, '0', '0')"
+    
   let query_users = new Promise((resolve, reject) => {
     mysql_pool.getConnection((error, connection) => {
-      if (error) throw error
-      connection.query(sql_users, (err, res) => {
+      if (error) {
+        console.error('数据库连接错误:', error)
+        return
+      }
+      connection.query(sql_users, [username, realname, password_users, email, date, ip], (err, res) => {
+        connection.release()
         if (err) {
           reject(err)
         } else {
           resolve(res)
         }
-        connection.release()
       })
     })
   })
@@ -334,16 +330,20 @@ exports.insertReg = async (JSONdata, ip) => {
       status[0] = false
     }
   })
+  
   let query_authme = new Promise((resolve, reject) => {
     mysql_pool.getConnection((error, connection) => {
-      if (error) throw error
-      connection.query(sql_authme, (err, res) => {
+      if (error) {
+        console.error('数据库连接错误:', error)
+        return
+      }
+      connection.query(sql_authme, [username, realname, password_authme, config.mysql.authme.world, date_timestamp, ip, email], (err, res) => {
+        connection.release()
         if (err) {
           reject(err)
         } else {
           resolve(res)
         }
-        connection.release()
       })
     })
   })

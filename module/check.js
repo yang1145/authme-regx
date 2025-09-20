@@ -9,7 +9,7 @@ const schedule = require('node-schedule')
 const path = require('path')
 const fs = require('fs')
 
-var config = require('../config/config.json')
+var config = require('../config/config.js')
 
 var regex = new Array()
 regex['id'] = [

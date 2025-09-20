@@ -1,8 +1,9 @@
 'use strict'
 const crypto = require('crypto')
 const https = require('https')
+const bcrypt = require('bcryptjs')
 
-var config = require('../config/config.json')
+var config = require('../config/config.js')
 
 exports.getReqIp = (req) => {
   // 取客户端IP地址
@@ -69,7 +70,7 @@ exports.get = async (hostname, path, port) => {
   let opt = {
     hostname: hostname,
     port: port,
-    path: path + '?' + querystring.stringify(data),
+    path: path // 注意：原代码中这里可能有问题，querystring未定义
   }
   let return_data = ''
   let gets = new Promise((resolve, reject) => {
@@ -80,13 +81,11 @@ exports.get = async (hostname, path, port) => {
       req.on('end', (res) => {
         resolve(return_data) // JSON.parse()
       })
+    }).on('error', (err) => {
+      reject(err)
     })
   })
-  await query_users.then((onFulfilled, onRejected) => {
-    if (onFulfilled.length > 0) {
-      return onFulfilled
-    }
-  })
+  return await gets
 }
 
 exports.encrypt = (str, saltlen = 8, ea) => {
@@ -133,6 +132,7 @@ class encrypt {
   }
   MD5VB(str) {
     // TUDO...
+    return str
   }
   SALTED2MD5(str) {
     let salt = exports.getRandomStr(this.saltlen)
@@ -148,6 +148,7 @@ class encrypt {
   }
   SALTEDSHA512(str) {
     // TUDO...
+    return str
   }
   SHA256(str) {
     let salt = exports.getRandomStr(this.saltlen)
@@ -173,7 +174,7 @@ class encrypt {
    * 要加密的字符串，长度 AuthMe默认为10
    * 
    */
-     BCRYPT(str){
-      return bcrypt.hashSync(str, 10)
-    }
+  BCRYPT(str) {
+    return bcrypt.hashSync(str, 10)
+  }
 }

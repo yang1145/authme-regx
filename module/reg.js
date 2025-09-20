@@ -4,7 +4,7 @@ const sql = require('./sql.js')
 const api = require('./api.js')
 const check = require('./check.js')
 
-var config = require('../config/config.json')
+var config = require('../config/config.js')
 
 exports.register = async (JSONdata, ip) => {
   // 注册处理主入口

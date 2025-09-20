@@ -13,7 +13,7 @@ const ejs = require('ejs')
 const fs = require('fs')
 const bodyParser = require('body-parser')
 
-var config = require('./config/config.json')
+var config = require('./config/config.js')
 
 const index = require('./module/index.js')
 const sql = require('./module/sql.js')
