@@ -1,15 +1,15 @@
-使用 Node.js 驱动的全新 Minecraft 网页注册系统，当然，它一般用来配合 AuthMe-Reloaded 插件使用
+# AuthMe-RegX API
 
-目的是将原插件的指令注册抛弃，防止熊孩子无限假人刷注册进服捣乱，使用此系统后可以将原插件的注册功能关闭
+使用 Node.js 驱动的 Minecraft 网页注册系统后端 API，专为配合 AuthMe-Reloaded 插件使用。
 
-此项目为 [Authme-reger](https://github.com/sc0utz/Authme-Reger) 的重写版，新版本重写了整个前端模板，同时使用 Node.js 重写了后端，修复了一些历史遗留问题
+此项目是 [Authme-reger](https://github.com/sc0utz/Authme-Reger) 的重写版，将原有的前端和后端一体化架构改造为纯后端 API 服务，提供现代化的 RESTful API 接口供前端或其他服务调用。
 
-## 警告信息
+## ⚠️ 重要提醒
 
-__本项目年代久远，期间衍生出 authlib-injector 等外置登录技术，无论在安全性、易用性上都比本项目要好得多，因此我不再推荐各位使用本项目。__
+__本项目年代久远，目前业界已有更好的解决方案如 authlib-injector 等外置登录技术，无论在安全性、易用性上都比本项目要好得多，因此我不再推荐各位使用本项目。__
 
 请您在使用本项目之前思考以下几点问题：
-- 我是否只需要一个简单的注册页面？
+- 我是否只需要一个简单的注册 API 服务？
 - 我的登录系统是否为 Authme 且不考虑更换？
 
 如果您最终的回答都为"是"，那么您可以使用本项目，否则我依然推荐您去使用基于 authlib-injector 的验证系统（如：BlessingSkin）。
@@ -17,14 +17,18 @@ __本项目年代久远，期间衍生出 authlib-injector 等外置登录技术
 ## 功能特性
 
 * 兼容 AuthMe Reloaded 5.6.0 (最新版本)
+* 提供 RESTful API 接口
 * 实时检测用户输入的内容并提交后端验证
-* 腾讯点击式防灌水验证码
 * 发送邮件验证码验证邮箱
 * 注册昵称白名单/黑名单
 * 注册邮箱白名单/黑名单
 * 注册IP归属地白名单/黑名单
 * 相同IP间隔N分钟后才能注册
 * 支持 Authme 插件常用的加密算法
+
+## API 文档
+
+项目提供详细的 API 文档，可通过访问 `/api/docs` 端点获取。
 
 ## 如何启动
 
@@ -44,7 +48,7 @@ __本项目年代久远，期间衍生出 authlib-injector 等外置登录技术
 
 执行命令 `npm run start` 启动服务端，您会在控制台看到一行提示 __"Server is running on host XXXX"__
 
-如果您没有改动过默认配置，那么您现在访问 `127.0.0.1:1234` 就会出现页面了
+如果您没有改动过默认配置，那么 API 服务将在 `127.0.0.1:1234` 上运行。
 
 ## 配置说明
 
@@ -84,7 +88,7 @@ http {
   # regx 反向代理节点
   server {
       listen        80;
-      server_name   www.yoursite.com;
+      server_name   api.yoursite.com;
 
       location / {
           proxy_set_header X-Real-IP $remote_addr;
@@ -107,13 +111,13 @@ http {
 
 `listen 80;` 为监听 80 端口(即 http 协议)，如果开启 SSL (即 https 协议)那么请修改为 `listen 443;` ，并添加相应的 SSL 配置代码，具体代码就不在此贴出，一般证书提供商都会有相应的配置代码
 
-`server_name www.yoursite.com;` 为绑定域名，将其修改为您的域名
+`server_name api.yoursite.com;` 为绑定域名，将其修改为您的域名
 
 `proxy_pass http://127.0.0.1:1234;` 后面的 `:1234` 为端口号，可根据站点的配置修改
 
 添加完成后，保存配置文件，然后重启 Nginx
 
-以上面为例子的话，此时访问 __www.yoursite.com__ 即可显示注册页面
+以上面为例子的话，此时访问 __api.yoursite.com__ 即可访问 API 服务
 
 __注意:__ 推荐开启 SSL ，此项目支持全站 HTTPS
 

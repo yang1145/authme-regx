@@ -89,16 +89,7 @@ module.exports = {
     }
   },
 
-  verify: {
-    sendecode: {
-      AppID: process.env.VERIFY_SENDECODE_APPID || "",
-      AppSecretKey: process.env.VERIFY_SENDECODE_APPSECRETKEY || ""
-    },
-    reg: {
-      AppID: process.env.VERIFY_REG_APPID || "",
-      AppSecretKey: process.env.VERIFY_REG_APPSECRETKEY || ""
-    }
-  },
+  // 移除了 verify 配置项，因为不再使用腾讯防水墙
 
   email: {
     smtp: {

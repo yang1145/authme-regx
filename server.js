@@ -26,34 +26,32 @@ const api = require('./module/api.js')
   let check____ = await check.tableCheck()
 })()
 
-express.set('views', path.join(__dirname, '/static/html'))
-express.set('view engine', 'ejs')
-express.use('/', router)
-express.use('/', express_.static('static'))
+// 移除了视图引擎设置和静态文件中间件，因为不再需要提供前端页面
 
 express.use(bodyParser.urlencoded({ extended: false }))
 express.use(bodyParser.json())
 
+// 修改根路径路由，直接返回API信息而不是渲染页面
 router.get('/', (req, res) => {
-  // 渲染HTML页面
   if (!index.permission(req, res)) {
     res.sendStatus(403)
     return
   }
-  res.type('html')
-  res.render('index', {
-    title: config.website.title,
-    description: config.website.description,
-    keywords: config.website.keywords,
-    url: config.website.url,
-    h1_title: config.website.h1_title,
-    h4_title: config.website.h4_title,
-    checkbox_ag: config.website.checkbox_ag,
-    footer: config.website.footer,
-    appid_sendecode: config.verify.sendecode.AppID,
-    appid_reg: config.verify.reg.AppID,
-    session_code: api.encrypt(api.getRandomNum(10000, 99999).toString(), 0, 'BASE64EN')
+  
+  res.json({
+    message: 'AuthMe-RegX API Server',
+    version: '0.0.1',
+    documentation: '/api/docs' // 指向API文档位置
   })
+})
+
+router.get('/api/docs', (req, res) => {
+  if (!index.permission(req, res)) {
+    res.sendStatus(403)
+    return
+  }
+  
+  res.sendFile(path.join(__dirname, 'API_DOCUMENTATION.md'))
 })
 
 router.get('/api/get', async (req, res) => {
@@ -81,28 +79,19 @@ router.get('/api/get', async (req, res) => {
       res.send(inputcheck) // ** 已重构
       break
     case 'sendecode': // 发送邮件验证码
-      check.verifyCheck(
-        config.verify.sendecode.AppID,
-        config.verify.sendecode.AppSecretKey,
-        JSONdata.ticket,
-        JSONdata.randstr,
-        api.getReqIp(req),
-        res,
-        async (err, verify_data) => {
-          let rtn = {
-            mod: 'sendecode',
-            msg: '',
-            email: JSONdata.e
-          }
-          if (verify_data.response.toString() === '1') {
-            let sendcode_status = await check.sendecode(JSONdata, res)
-            rtn.msg = 'OK'
-          } else {
-            rtn.msg = verify_data.err_msg
-          }
-          res.send(JSON.stringify(rtn))
-        }
-      )
+      // 移除了腾讯防水墙验证，直接发送验证码
+      let rtn = {
+        mod: 'sendecode',
+        msg: '',
+        email: JSONdata.e
+      }
+      let sendcode_status = await check.sendecode(JSONdata, res)
+      if (sendcode_status) {
+        rtn.msg = 'OK'
+      } else {
+        rtn.msg = '发送失败'
+      }
+      res.send(JSON.stringify(rtn))
       break
     default:
       res.sendStatus(403)
@@ -123,27 +112,16 @@ express.post('/api/post', async (req, res) => {
   }
   let mod = req.body.mod
   let JSONdata = JSON.parse(req.body.data)
-  if (!JSONdata || !JSONdata.id || !JSONdata.pwd || !JSONdata.e || !JSONdata.ecode || !JSONdata.ticket) {
-    // 非法参数
+  if (!JSONdata || !JSONdata.id || !JSONdata.pwd || !JSONdata.e || !JSONdata.ecode) {
+    // 非法参数 (移除了 ticket 参数)
     res.sendStatus(403)
     return
   }
   switch (mod) {
     case 'reg': // 注册提交表单
-      check.verifyCheck(
-        config.verify.reg.AppID,
-        config.verify.reg.AppSecretKey,
-        JSONdata.ticket,
-        JSONdata.randstr,
-        api.getReqIp(req),
-        res,
-        async (err, verify_data) => {
-          if (verify_data.response.toString() === '1') {
-            let regmsg = await reg.register(JSONdata, api.getReqIp(req))
-            res.send(JSON.stringify(regmsg))
-          }
-        }
-      )
+      // 移除了腾讯防水墙验证，直接进行注册
+      let regmsg = await reg.register(JSONdata, api.getReqIp(req))
+      res.send(JSON.stringify(regmsg))
       break
     default:
       break
@@ -153,8 +131,7 @@ express.post('/api/post', async (req, res) => {
 var server = express.listen(config.server.port, () => {
   var host = server.address().address
   var port = server.address().port
+  console.log('*** Server is running on host: ' + host + ':' + port + ' ***')
 })
-
-console.log('*** Server is running on host: ' + server.address().address + ':' + server.address().port + ' ***')
 
 // END

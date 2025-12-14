@@ -1,7 +1,7 @@
 {
-  "name": "regx-node",
+  "name": "regx-node-api",
   "version": "0.0.1",
-  "description": "A web registration system, Powered by Node.js",
+  "description": "A web registration API system for Minecraft servers, Powered by Node.js",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -12,7 +12,10 @@
     "url": "git+https://github.com/hhui64/regx.git"
   },
   "keywords": [
-    "regx"
+    "regx",
+    "api",
+    "minecraft",
+    "authme"
   ],
   "author": "hhui64",
   "license": "AGPL-3.0-only",

@@ -3,8 +3,6 @@ const index = require('./index.js')
 const sql = require('./sql.js')
 const api = require('./api.js')
 const nodemailer = require('nodemailer')
-const https = require('https')
-const querystring = require('querystring')
 const schedule = require('node-schedule')
 const path = require('path')
 const fs = require('fs')
@@ -248,42 +246,7 @@ exports.regCheck = async (JSONdata, ip) => {
   return true
 }
 
-exports.verifyCheck = async (Aid, AppSecretKey, Ticket, Randstr, UserIP, Res, callback) => {
-  // get提交人机验证 TUDO...
-  let data = {
-    aid: Aid,
-    AppSecretKey: AppSecretKey,
-    Ticket: Ticket,
-    Randstr: Randstr,
-    UserIP: UserIP,
-  }
-  let opt = {
-    hostname: 'ssl.captcha.qq.com',
-    port: 443,
-    path: '/ticket/verify?' + querystring.stringify(data),
-  }
-  let return_data = ''
-  let https_promise = new Promise((resolve, reject) => {
-    let getdata = https.get(opt, (req) => {
-      req.on('data', (res) => {
-        return_data += res
-      })
-      req.on('end', (res) => {
-        resolve(return_data)
-      })
-    })
-    getdata.on('error', (req) => {
-      reject(req)
-    })
-  })
-  https_promise.then((onFulfilled, onRejected) => {
-    if (!onRejected) {
-      callback('', JSON.parse(return_data))
-    } else {
-      callback(504, '')
-    }
-  })
-}
+// 移除了 verifyCheck 函数，因为不再使用腾讯防水墙
 
 exports.sendecode = async (JSONdata) => {
   // 发送邮箱验证码
